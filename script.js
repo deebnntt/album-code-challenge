@@ -3,7 +3,7 @@ let albums = []
 let api
 let user1
 let user2
-
+var nodes = document.querySelectorAll('div.table__row')
 
 //Class Functions
 
@@ -43,11 +43,21 @@ class User {
 
     if (user.id === 1) {
       userCell1.innerText = `${user.name}'s Albums`
+      user1 = user
     }
 
     if (user.id === 2){
       userCell2.innerText = `${user.name}'s Albums`
+      user2 = user
     }
+  }
+
+  static findUserByName(name) {
+    return users.find(user => user.name === name)
+  }
+
+  static findUserById(id) {
+    return users.find(user => user.id === id)
   }
 }
 
@@ -85,13 +95,14 @@ class Album {
     row.appendChild(idCell)
     row.appendChild(titleCell)
 
-    if (album.userId === 1) {
-      table1.appendChild(row)
-    } else if (album.userId === 2){
-      table2.appendChild(row)
-    } else {
-      null
-    }
+    if (album.userId === user1.id) {
+        table1.appendChild(row)
+      } else if (album.userId === user2.id) {
+        table2.appendChild(row)
+      } else {
+        null
+      }
+
   }
 
   static findByUser(id) {
@@ -104,7 +115,14 @@ class Album {
 //Event Listeners, Functions
 
 document.addEventListener('DOMContentLoaded', fetchUsers())
-document.addEventListener('DOMContentLoaded', fetchAlbums())
+
+function fetchUsers() {
+  api = new Api()
+  api.getUsers()
+    .then(addUsers)
+    .then(renderDropDown)
+    .then(fetchAlbums)
+}
 
 function fetchAlbums() {
   api = new Api()
@@ -119,15 +137,7 @@ function addAlbums(response) {
   })
 }
 
-function fetchUsers() {
-  api = new Api()
-  api.getUsers()
-    .then(addUsers)
-    .then(renderDropDown)
-}
-
 function addUsers(response) {
-  console.log(response)
   response.forEach((userData) => {
     const user = new User(userData)
     user.renderUser(user)
@@ -135,8 +145,6 @@ function addUsers(response) {
 }
 
 function renderDropDown() {
-  console.log(users)
-
   users.forEach(user => {
     let userOption = document.createElement('option');
     userOption.innerText = user.name
@@ -158,10 +166,66 @@ function renderDropDown() {
     .addEventListener('change', (ev, id) => reRenderName(ev, 'user-list-2'));
 }
 
-function reRenderName(ev, id) {
-  console.log(ev.target.value, id)
+function renderAlbums() {
+  console.log("i'm here")
 }
 
+function reRenderName(ev, id) {
+  const name = event.target.value
+
+  const userCell1 = document.getElementById('user-cell-1')
+  const userCell2 = document.getElementById('user-cell-2')
+
+  if (id === 'user-list-1') {
+    userCell1.innerText = `${name}'s Albums`
+    user1 = User.findUserByName(name)
+  }
+
+  if (id === 'user-list-2'){
+    userCell2.innerText = `${name}'s Albums`
+    user2 = User.findUserByName(name)
+  }
+
+  reRenderAlbums(id)
+}
+
+function reRenderAlbums(id) {
+  let table
+  let user
+
+  if (id === 'user-list-1') {
+    table = document.getElementById('table-1')
+    user = user1
+  } else if (id === 'user-list-2') {
+    table = document.getElementById('table-2')
+    user = user2
+  }
+
+  table.innerHTML = ""
+
+  albums.map(function(album) {
+    if (album.userId === user.id) {
+      let row = document.createElement('div')
+      row.className = 'table__row'
+      row.id = album.id
+      row.draggable = true
+
+      let idCell = document.createElement('div')
+      let titleCell = document.createElement('div')
+
+      idCell.innerText = album.id
+      idCell.className = 'table__cell--short'
+
+      titleCell.innerText = album.title
+      titleCell.className = 'table__cell'
+
+      row.appendChild(idCell)
+      row.appendChild(titleCell)
+      table.appendChild(row)
+    }
+  })
+
+}
 
 //Drag and Drop Functions
 
