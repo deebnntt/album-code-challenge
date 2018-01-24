@@ -3,7 +3,8 @@ let albums = []
 let api
 let user1
 let user2
-var nodes = document.querySelectorAll('div.table__row')
+let table1 = document.getElementById('table-1')
+let table2 = document.getElementById('table-2')
 
 //Class Functions
 
@@ -31,10 +32,6 @@ class User {
     this.username = attr.username
 
     users.push(this)
-  }
-
-  static all(){
-    return users
   }
 
   renderUser(user) {
@@ -70,18 +67,13 @@ class Album {
     albums.push(this)
   }
 
-  static all(){
-    return albums
-  }
-
   renderAlbum(album) {
-    const table1 = document.getElementById('table-1')
-    const table2 = document.getElementById('table-2')
-
     let row = document.createElement('div')
     row.className = 'table__row'
     row.id = album.id
-    row.draggable = true;
+    row.setAttribute('draggable', 'true');
+    row.setAttribute('aria-grabbed', 'false');
+    row.setAttribute('tabindex', '0');
 
     let idCell = document.createElement('div')
     let titleCell = document.createElement('div')
@@ -102,11 +94,6 @@ class Album {
       } else {
         null
       }
-
-  }
-
-  static findByUser(id) {
-    return this.all.find(album => album.userId === id)
   }
 
 }
@@ -115,6 +102,10 @@ class Album {
 //Event Listeners, Functions
 
 document.addEventListener('DOMContentLoaded', fetchUsers())
+
+document.getElementById('filter-input-1').addEventListener('input', filterTitles)
+document.getElementById('filter-input-2').addEventListener('input', filterTitles)
+
 
 function fetchUsers() {
   api = new Api()
@@ -166,10 +157,6 @@ function renderDropDown() {
     .addEventListener('change', (ev, id) => reRenderName(ev, 'user-list-2'));
 }
 
-function renderAlbums() {
-  console.log("i'm here")
-}
-
 function reRenderName(ev, id) {
   const name = event.target.value
 
@@ -186,29 +173,34 @@ function reRenderName(ev, id) {
     user2 = User.findUserByName(name)
   }
 
-  reRenderAlbums(id)
+  filterAlbums(id)
 }
 
-function reRenderAlbums(id) {
+function filterAlbums(id) {
   let table
   let user
 
   if (id === 'user-list-1') {
-    table = document.getElementById('table-1')
+    table = table1
     user = user1
   } else if (id === 'user-list-2') {
-    table = document.getElementById('table-2')
+    table = table2
     user = user2
   }
 
+  renderAlbums(albums, user, table)
+}
+
+function renderAlbums(array, user, table) {
   table.innerHTML = ""
 
-  albums.map(function(album) {
+  array.map(function(album) {
     if (album.userId === user.id) {
       let row = document.createElement('div')
       row.className = 'table__row'
-      row.id = album.id
-      row.draggable = true
+      row.setAttribute('draggable', 'true');
+      row.setAttribute('aria-grabbed', 'false');
+      row.setAttribute('tabindex', '0');
 
       let idCell = document.createElement('div')
       let titleCell = document.createElement('div')
@@ -224,7 +216,22 @@ function reRenderAlbums(id) {
       table.appendChild(row)
     }
   })
+}
 
+function filterTitles(ev) {
+  let term = ev.target.value.toLowerCase();
+
+  if (ev.target.id === 'filter-input-1') {
+    table = table1
+    user = user1
+  } else if (ev.target.id === 'filter-input-2') {
+    table = table2
+    user = user2
+  }
+  //
+  let filtered = albums.filter(a => a.title.includes(term.toLowerCase()))
+
+  renderAlbums(filtered, user, table)
 }
 
 //Drag and Drop Functions
@@ -232,14 +239,26 @@ function reRenderAlbums(id) {
 var dragged;
 
 /* events fired on the draggable target */
-document.addEventListener("drag", function( event ) {
-}, false);
+document.addEventListener("drag", function(ev) {
+  }, false);
 
-document.addEventListener("dragstart", function( event ) {
+document.addEventListener("dragstart", function(ev) {
     // store a ref. on the dragged elem
-    dragged = event.target;
+    dragged = ev.target;
+    ev.dataTransfer.setData('text', '');
     // make it half transparent
-    event.target.style.opacity = .5;
+    dragged.style.opacity = .5;
+
+    if (dragged.parentNode.id === 'table-1') {
+      table2.style.opacity = .7
+      table2.style.border = "3px dashed #333"
+    }
+
+    if (dragged.parentNode.id === 'table-2') {
+      table1.style.opacity = .7
+      table1.style.border = "3px dashed #333"
+    }
+
 }, false);
 
 document.addEventListener("dragend", function( event ) {
@@ -279,5 +298,10 @@ document.addEventListener("drop", function( event ) {
         dragged.parentNode.removeChild( dragged );
         event.target.appendChild( dragged );
     }
+
+    table1.style.opacity = 1
+    table2.style.opacity = 1
+    table1.style.border = "1px solid #333"
+    table2.style.border = "1px solid #333"
 
 }, false);
