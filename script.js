@@ -33,7 +33,7 @@ class Api {
     })
       .then(res => res.json())
       .then(function(data) {
-        console.log(data);
+        renderData(data);
       })
       .catch(function(error) {
         console.log('Fetch Error :-S', error);
@@ -65,13 +65,6 @@ class User {
     }
   }
 
-  static findUserByName(name) {
-    return users.find(user => user.name === name)
-  }
-
-  static findUserById(id) {
-    return users.find(user => user.id === id)
-  }
 }
 
 class Album {
@@ -114,6 +107,12 @@ class Album {
   }
 }
 
+function renderData(data) {
+  let alb = albums.find(album => album.id === data.id)
+  alb.userId = data.bodyData.userId
+  renderAlbums(albums, user1, table1)
+  renderAlbums(albums, user2, table2)
+ }
 
 //Event Listeners, Functions
 
@@ -257,8 +256,10 @@ function updateAlbumUserId(moved) {
 
   if (moved.droptarget.id === 'table-1') {
     userId = user1.id
-  } else if (moved.droptarget.id === 'table-2') {
-    userId = user1.id
+  }
+
+  if (moved.droptarget.id === 'table-2') {
+    userId = user2.id
   }
 
   array.forEach(album => {
@@ -512,6 +513,7 @@ let dragged
     //dragend event to implement items being validly dropped into targets,
     //or invalidly dropped elsewhere, and to clean-up the interface either way
     document.addEventListener('dragend', function(e) {
+        console.log("dragend", selections)
         let moved = {...selections}
         updateAlbumUserId(moved)
         if (selections.droptarget) {
@@ -528,5 +530,6 @@ let dragged
             }
         }
     }, false);
+
 
 })();
