@@ -39,7 +39,8 @@ class Api {
         console.log('Fetch Error :-S', error);
       });
     }
-  }
+
+}
 
 class User {
   constructor(attr) {
@@ -64,6 +65,14 @@ class User {
       user2 = user
     }
   }
+
+  static findUserByName(name) {
+     return users.find(user => user.name === name)
+  }
+
+   static findUserById(id) {
+     return users.find(user => user.id === id)
+   }
 
 }
 
@@ -105,14 +114,8 @@ class Album {
         null
       }
   }
-}
 
-function renderData(data) {
-  let alb = albums.find(album => album.id === data.id)
-  alb.userId = data.bodyData.userId
-  renderAlbums(albums, user1, table1)
-  renderAlbums(albums, user2, table2)
- }
+}
 
 //Event Listeners, Functions
 
@@ -213,6 +216,7 @@ function renderAlbums(array, user, table) {
     if (album.userId === user.id) {
       let row = document.createElement('div')
       row.className = 'table__row'
+      row.id = album.id
       row.setAttribute('draggable', 'true')
       row.setAttribute('aria-grabbed', 'false')
       row.setAttribute('tabindex', '0')
@@ -274,6 +278,13 @@ function updateAlbumUserId(moved) {
     api.updateUserId(albumId, body)
   })
 }
+
+function renderData(data) {
+  let alb = albums.find(album => album.id === data.id)
+  alb.userId = data.bodyData.userId
+  renderAlbums(albums, user1, table1)
+  renderAlbums(albums, user2, table2)
+ }
 
 //Drag and Drop Functions
 
@@ -513,7 +524,6 @@ let dragged
     //dragend event to implement items being validly dropped into targets,
     //or invalidly dropped elsewhere, and to clean-up the interface either way
     document.addEventListener('dragend', function(e) {
-        console.log("dragend", selections)
         let moved = {...selections}
         updateAlbumUserId(moved)
         if (selections.droptarget) {
@@ -530,6 +540,5 @@ let dragged
             }
         }
     }, false);
-
 
 })();

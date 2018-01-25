@@ -1,7 +1,7 @@
 body {
     font-family: 'Helvetica', 'Arial', sans-serif;
     padding: 0 50px;
-    background-color: #EFEFEF;
+    background-color: #EBD3FF;
 }
 
 main {
@@ -9,18 +9,22 @@ main {
     justify-content: space-between;
 }
 
+h1 {
+  font-style: italic;
+}
 
 .filter__input {
     padding: 5px;
     margin-bottom: 10px;
     border: 1px solid #333;
     display: block;
+    width: 80%;
 }
 
 
 .section {
     width: 48%;
-    background-color: #EFEFEF;
+    background-color: #EBD3FF;
     height: auto;
 }
 .table {
@@ -28,19 +32,39 @@ main {
     background-color: white;
     height: 600px;
 }
-.table__header {
+
+.header {
+    display: flex;
     background-color: #333;
     font-weight: bold;
     color: white;
+    padding: 5px;
 }
+.header-cell {
+    width: 10px;
+    margin-left: 10px;
+}
+.header-cell-short {
+    flex-shrink: 0;
+    width: 50px;
+}
+
 
 .table__row {
     display: flex;
     padding: 5px;
     border-bottom: 1px solid #333;
 }
-.table__row:last-child {
-    border-bottom: 0
+
+.table__row:hover {
+    background-color: #EBD3FF;
+}
+
+div.table > div:nth-of-type(odd) {
+    background: #C68EE4;
+}
+div.table > div:nth-of-type(odd):hover {
+  background-color: #EBD3FF;
 }
 
 .table__cell {
@@ -56,7 +80,7 @@ main {
     margin-right: 0px;
 }
 
-/* Draggable Items */
+/* Draggable Items Modifiers */
 
 [data-draggable="target"]
 {
@@ -74,23 +98,6 @@ main {
 [data-draggable="target"][aria-dropeffect="move"].dragover
 {
 	outline:none;
-
-	box-shadow:0 0 0 1px #fff, 0 0 0 3px #68b;
-}
-
-[data-draggable="item"]:hover
-{
-	outline:none;
-
-	box-shadow:0 0 0 2px #fff, inset 0 0 0 1px #ddd;
-  background-color: pink;
-}
-
-[data-draggable="item"]:focus
-{
-	outline:none;
-
-	box-shadow:0 0 0 2px #68b, inset 0 0 0 1px #ddd;
 }
 
 [data-draggable="item"][aria-grabbed="true"]
