@@ -23,7 +23,23 @@ class Api {
     .then(res => res.json())
   }
 
-}
+  updateUserId(albumId, bodyData) {
+    return fetch(`${this.baseURL}/albums/${albumId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ bodyData }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8"
+      }
+    })
+      .then(res => res.json())
+      .then(function(data) {
+        console.log(data);
+      })
+      .catch(function(error) {
+        console.log('Fetch Error :-S', error);
+      });
+    }
+  }
 
 class User {
   constructor(attr) {
@@ -71,9 +87,10 @@ class Album {
     let row = document.createElement('div')
     row.className = 'table__row'
     row.id = album.id
-    row.setAttribute('draggable', 'true');
-    row.setAttribute('aria-grabbed', 'false');
-    row.setAttribute('tabindex', '0');
+    row.setAttribute('draggable', 'true')
+    row.setAttribute('aria-grabbed', 'false')
+    row.setAttribute('tabindex', '0')
+    row.setAttribute('data-draggable','item')
 
     let idCell = document.createElement('div')
     let titleCell = document.createElement('div')
@@ -95,7 +112,6 @@ class Album {
         null
       }
   }
-
 }
 
 
@@ -198,9 +214,10 @@ function renderAlbums(array, user, table) {
     if (album.userId === user.id) {
       let row = document.createElement('div')
       row.className = 'table__row'
-      row.setAttribute('draggable', 'true');
-      row.setAttribute('aria-grabbed', 'false');
-      row.setAttribute('tabindex', '0');
+      row.setAttribute('draggable', 'true')
+      row.setAttribute('aria-grabbed', 'false')
+      row.setAttribute('tabindex', '0')
+      row.setAttribute('data-draggable','item')
 
       let idCell = document.createElement('div')
       let titleCell = document.createElement('div')
@@ -234,74 +251,282 @@ function filterTitles(ev) {
   renderAlbums(filtered, user, table)
 }
 
+function updateAlbumUserId(moved) {
+  let userId
+  let array = moved.itemDetails
+
+  if (moved.droptarget.id === 'table-1') {
+    userId = user1.id
+  } else if (moved.droptarget.id === 'table-2') {
+    userId = user1.id
+  }
+
+  array.forEach(album => {
+    albumId = album
+    let body = {
+      id: albumId,
+      title: 'foo',
+      body: 'bar',
+      userId: userId
+    }
+    api = new Api()
+    api.updateUserId(albumId, body)
+  })
+}
+
 //Drag and Drop Functions
 
-var dragged;
+let targets = document.querySelectorAll('[data-draggable="target"]')
+let dragged
 
-/* events fired on the draggable target */
-document.addEventListener("drag", function(ev) {
-  }, false);
+(function() {
 
-document.addEventListener("dragstart", function(ev) {
-    // store a ref. on the dragged elem
-    dragged = ev.target;
-    ev.dataTransfer.setData('text', '');
-    // make it half transparent
-    dragged.style.opacity = .5;
-
-    if (dragged.parentNode.id === 'table-1') {
-      table2.style.opacity = .7
-      table2.style.border = "3px dashed #333"
+    for(var
+        targets = document.querySelectorAll('[data-draggable="target"]'),
+        len = targets.length,
+        i = 0; i < len; i ++) {
+        targets[i].setAttribute('aria-dropeffect', 'none');
     }
 
-    if (dragged.parentNode.id === 'table-2') {
-      table1.style.opacity = .7
-      table1.style.border = "3px dashed #333"
+    for(var
+        items = document.querySelectorAll('[data-draggable="item"]'),
+        len = items.length,
+        i = 0; i < len; i ++) {
+        items[i].setAttribute('draggable', 'true');
+        items[i].setAttribute('aria-grabbed', 'false');
+        items[i].setAttribute('tabindex', '0');
     }
 
-}, false);
+    var selections = {
+        items      : [],
+        itemDetails: [],
+        owner      : null,
+        droptarget : null
+      }
 
-document.addEventListener("dragend", function( event ) {
-    // reset the transparency
-    event.target.style.opacity = "";
-}, false);
+    //function for selecting an item
+    function addSelection(item) {
+        if(!selections.owner) {
+            selections.owner = item.parentNode;
+        }  else if (selections.owner != item.parentNode) {
+            return
+        }
 
-/* events fired on the drop targets */
-document.addEventListener("dragover", function( event ) {
-    // prevent default to allow drop
-    event.preventDefault();
-}, false);
-
-document.addEventListener("dragenter", function( event ) {
-    // highlight potential drop target when the draggable element enters it
-    if ( event.target.className == "table" ) {
-        event.target.style.background = "pink";
+        item.setAttribute('aria-grabbed', 'true');
+        selections.items.push(item);
+        selections.itemDetails.push(item.id);
     }
 
-}, false);
+    //function for unselecting an item
+    function removeSelection(item) {
+        item.setAttribute('aria-grabbed', 'false');
 
-document.addEventListener("dragleave", function( event ) {
-    // reset background of potential drop target when the draggable element leaves it
-    if ( event.target.className == "table" ) {
-        event.target.style.background = "";
+        for(var len = selections.items.length, i = 0; i < len; i ++) {
+            if(selections.items[i] == item) {
+                selections.items.splice(i, 1);
+                selections.itemDetails.splice(i, 1)
+                break;
+            }
+        }
     }
 
-}, false);
+    //function for resetting all selections
+    function clearSelections() {
+        if(selections.items.length) {
+            selections.owner = null;
+            for(var len = selections.items.length, i = 0; i < len; i ++) {
+                selections.items[i].setAttribute('aria-grabbed', 'false');
+            }
 
-document.addEventListener("drop", function( event ) {
-    // prevent default action (open as link for some elements)
-    event.preventDefault();
-    // move dragged elem to the selected drop target
-    console.log("you left me")
-    if ( event.target.className == "table" ) {
-        event.target.style.background = "";
-        dragged.parentNode.removeChild( dragged );
-        event.target.appendChild( dragged );
+            selections.items = [];
+            selections.itemDetails = [];
+        }
     }
 
-    table1.style.opacity = 1
-    table2.style.opacity = 1
-    table1.style.border = "1px solid #333"
-    table2.style.border = "1px solid #333"
+    //shorctut function for testing whether a selection modifier is pressed
+    function hasModifier(e) {
+        return (e.ctrlKey || e.metaKey || e.shiftKey);
+    }
 
-}, false);
+    //function for applying dropeffect to the target containers
+    function addDropeffects() {
+        //apply aria-dropeffect and tabindex to all targets apart from the owner
+        for(var len = targets.length, i = 0; i < len; i ++) {
+            if (targets[i] != selections.owner && targets[i].getAttribute('aria-dropeffect') == 'none') {
+                targets[i].setAttribute('aria-dropeffect', 'move');
+                targets[i].setAttribute('tabindex', '0');
+              }
+          }
+
+        for(var len = items.length, i = 0; i < len; i ++) {
+            if (items[i].parentNode != selections.owner && items[i].getAttribute('aria-grabbed')){
+                items[i].removeAttribute('aria-grabbed');
+                items[i].removeAttribute('tabindex');
+            }
+          }
+        }
+
+    //function for removing dropeffect from the target containers
+    function clearDropeffects()
+    {
+        if(selections.items.length) {
+            for(var len = targets.length, i = 0; i < len; i ++) {
+                if(targets[i].getAttribute('aria-dropeffect') != 'none') {
+                    targets[i].setAttribute('aria-dropeffect', 'none');
+                    targets[i].removeAttribute('tabindex');
+                }
+            }
+            for(var len = items.length, i = 0; i < len; i ++) {
+                if(!items[i].getAttribute('aria-grabbed')) {
+                    items[i].setAttribute('aria-grabbed', 'false');
+                    items[i].setAttribute('tabindex', '0');
+                }
+                else if(items[i].getAttribute('aria-grabbed') == 'true') {
+                    items[i].setAttribute('tabindex', '0');
+                }
+            }
+        }
+    }
+
+    //shortcut function for identifying an event element's target container
+    function getContainer(element){
+        do {
+          if (element.nodeType == 1 && element.getAttribute('aria-dropeffect')) {
+                return element;
+            }
+        } while(element = element.parentNode);
+        return null;
+      }
+
+    //mousedown event to implement single selection
+    document.addEventListener('mousedown', function(e) {
+        if(e.target.getAttribute('draggable')) {
+            clearDropeffects();
+            if (!hasModifier(e) && e.target.getAttribute('aria-grabbed') == 'false' ) {
+                clearSelections();
+                addSelection(e.target);
+            }
+        } else if (!hasModifier(e)) {
+            clearDropeffects();
+            clearSelections();
+        } else {
+            clearDropeffects();
+        }
+    }, false);
+
+    //mouseup event to implement multiple selection
+    document.addEventListener('mouseup', function(e) {
+        if(e.target.getAttribute('draggable') && hasModifier(e)) {
+            if(e.target.getAttribute('aria-grabbed') == 'true') {
+                removeSelection(e.target);
+                if(!selections.items.length) {
+                    selections.owner = null;
+                }
+            } else {
+              addSelection(e.target);
+            }
+        }
+    }, false);
+
+    //dragstart event to initiate mouse dragging
+    document.addEventListener('dragstart', function(e) {
+        if (selections.owner != e.target.parentNode) {
+            e.preventDefault();
+            return;
+        }
+        if (hasModifier(e) && e.target.getAttribute('aria-grabbed') == 'false') {
+            addSelection(e.target);
+        }
+        e.dataTransfer.setData('text', '');
+        addDropeffects();
+    }, false);
+
+    //keydown event to implement selection and abort
+    document.addEventListener('keydown', function(e) {
+        if(e.target.getAttribute('aria-grabbed')) {
+            if(e.keyCode == 32) {
+                if(hasModifier(e)) {
+                    if(e.target.getAttribute('aria-grabbed') == 'true') {
+                        if(selections.items.length == 1) {
+                            clearDropeffects();
+                        }
+                        removeSelection(e.target);
+
+                        if(selections.items.length) {
+                            addDropeffects();
+                        }
+                        if(!selections.items.length) {
+                            selections.owner = null;
+                        }
+                    } else {
+                        addSelection(e.target);
+                        addDropeffects();
+                    }
+                } else if(e.target.getAttribute('aria-grabbed') == 'false') {
+                    clearDropeffects();
+                    clearSelections();
+                    addSelection(e.target);
+                    addDropeffects();
+                } else {
+                    addDropeffects();
+                }
+                e.preventDefault();
+            }
+        }
+    }, false);
+
+    //related variable is needed to maintain a reference to the
+    //dragleave's relatedTarget, since it doesn't have e.relatedTarget
+    var related = null;
+
+    //dragenter event to set that variable
+    document.addEventListener('dragenter', function(e) {
+        related = e.target;
+    }, false);
+
+    // dragleave event to maintain target highlighting using that variable
+    document.addEventListener('dragleave', function(e) {
+        var droptarget = getContainer (related);
+        if (droptarget == selections.owner) {
+            droptarget = null;
+        }
+        if (droptarget != selections.droptarget) {
+            if (selections.droptarget) {
+                selections.droptarget.className =
+                    selections.droptarget.className.replace(/ dragover/g, '');
+            } if (droptarget) {
+                droptarget.className += ' dragover';
+            }
+            selections.droptarget = droptarget;
+        }
+    }, false);
+
+    //dragover event to allow the drag by preventing its default
+    document.addEventListener('dragover', function(e) {
+        if(selections.items.length) {
+            e.preventDefault();
+        }
+    }, false);
+
+
+    //dragend event to implement items being validly dropped into targets,
+    //or invalidly dropped elsewhere, and to clean-up the interface either way
+    document.addEventListener('dragend', function(e) {
+        let moved = {...selections}
+        updateAlbumUserId(moved)
+        if (selections.droptarget) {
+            for (var len = selections.items.length, i = 0; i < len; i ++) {
+                selections.droptarget.appendChild(selections.items[i]);
+            }
+            e.preventDefault();
+        } if (selections.items.length) {
+            clearDropeffects();
+            if (selections.droptarget) {
+                clearSelections();
+                selections.droptarget.className = selections.droptarget.className.replace(/ dragover/g, '');
+                selections.droptarget = null;
+            }
+        }
+    }, false);
+
+})();

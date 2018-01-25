@@ -39,21 +39,62 @@ main {
     padding: 5px;
     border-bottom: 1px solid #333;
 }
-.table__row:hover {
-    background-color: yellow;
-    cursor: pointer;
-}
 .table__row:last-child {
     border-bottom: 0
 }
 
 .table__cell {
     margin-right: 10px;
+    pointer-events: none;
 }
 .table__cell--short {
     flex-shrink: 0;
     width: 50px;
+    pointer-events: none;
 }
 .table__cell:last-child {
     margin-right: 0px;
+}
+
+/* Draggable Items */
+
+[data-draggable="target"]
+{
+	overflow-y:auto;
+}
+
+[data-draggable="target"][aria-dropeffect="move"]
+{
+	border-color:#68b;
+
+	background:#fff;
+}
+
+[data-draggable="target"][aria-dropeffect="move"]:focus,
+[data-draggable="target"][aria-dropeffect="move"].dragover
+{
+	outline:none;
+
+	box-shadow:0 0 0 1px #fff, 0 0 0 3px #68b;
+}
+
+[data-draggable="item"]:hover
+{
+	outline:none;
+
+	box-shadow:0 0 0 2px #fff, inset 0 0 0 1px #ddd;
+  background-color: pink;
+}
+
+[data-draggable="item"]:focus
+{
+	outline:none;
+
+	box-shadow:0 0 0 2px #68b, inset 0 0 0 1px #ddd;
+}
+
+[data-draggable="item"][aria-grabbed="true"]
+{
+	background:#8ad;
+	color:#fff;
 }

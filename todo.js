@@ -1,6 +1,7 @@
 
 add error when there are users 1 and 2 are the same
-make the box have an automatic height with flex box
+addtional styling
+// make the box have an automatic height with flex box
 
 // 1. Display - GET USERS with id 1 and 2, and their associated ALBUMS from the mock-API. Using the
 // provided template, display the response data in two tables representing each user.
@@ -24,7 +25,7 @@ rows on mouse-over.
 // 6. A Force to be Beckoned With - I hear people still don’t understand how to use this webpage. When
 // users start dragging a row, come up with a way to beckon them to drop it on the other table by
 // indicating a dropzone somehow.
-
-7. The Incredible Bulk - We don’t have time to be dragging around all these rows. Let’s allow users to
-select multiple rows, and drag them together in bulk. You’ll still have to make a PUT request for each
-one separately though.
+//
+// 7. The Incredible Bulk - We don’t have time to be dragging around all these rows. Let’s allow users to
+// select multiple rows, and drag them together in bulk. You’ll still have to make a PUT request for each
+// one separately though.
